@@ -1,10 +1,13 @@
 package com.huindata.integration.whhealth.covid19.vo;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
  */
+
+@JsonAutoDetect(fieldVisibility= JsonAutoDetect.Visibility.ANY, getterVisibility=JsonAutoDetect.Visibility.NONE)
 public class CYXXRequestBody implements RequestBody{
     @JsonProperty("YLJGDM")
     private String YLJGDM;

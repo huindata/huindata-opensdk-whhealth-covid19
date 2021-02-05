@@ -1,9 +1,12 @@
 package com.huindata.integration.whhealth.covid19.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class BusinessRequest<T extends RequestBody> {
 
     private String appid;
 
+    @JsonProperty("app_secret")
     private String appSecret;
 
     private String token;

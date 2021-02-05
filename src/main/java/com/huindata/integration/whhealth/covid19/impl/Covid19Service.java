@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.huindata.integration.whhealth.covid19.ICovid19Service;
+import com.huindata.integration.whhealth.covid19.vo.AppConfig;
 import com.huindata.integration.whhealth.covid19.vo.*;
 import org.apache.http.Consts;
 import org.apache.http.HttpStatus;
@@ -21,10 +22,10 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 
 public class Covid19Service implements ICovid19Service {
-    private String uriLogin = "";
-    private String uriCYXX = "/api/yjss/importCYXXResult",
-        uriJCJGQ = "/api/yjss/importJCJGQSResult",
-        uriJCJG = "/api/yjss/importJCJGResult";
+    private String uriLogin = "/auth";
+    private String uriCYXX = "/hscy/api/yjss/importCYXXResult",
+        uriJCJGQ = "/hscy/api/yjss/importJCJGQSResult",
+        uriJCJG = "/hscy/api/yjss/importJCJGResult";
     private AppConfig appConfig;
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -38,6 +39,11 @@ public class Covid19Service implements ICovid19Service {
     /**
      * 构造服务
      * @param apiRoot 核酸采样信息接口根地址
+     * @param appCode
+     * @param loginSign
+     * @param  hs01Sign
+     * @param  hs02Sign
+     * @param  hs03Sign
      * @param appId 授信应用id
      * @param appSecret 授信应用密钥
      * @param sysCode 系统编号
@@ -45,8 +51,17 @@ public class Covid19Service implements ICovid19Service {
      * @param loginPwd loginPwd
      * @param key 过密sm4加密，密钥由平台分配
      */
-    public Covid19Service(String apiRoot, String appId, String appSecret, String sysCode, String loginName, String loginPwd, String key){
+    public Covid19Service(String apiRoot, String appCode, String loginSign,
+                          String hs01Sign,
+                          String hs02Sign,
+                          String hs03Sign,
+                          String appId, String appSecret, String sysCode, String loginName, String loginPwd, String key){
         this(new AppConfig(apiRoot,
+                appCode,
+                loginSign,
+                hs01Sign,
+                hs02Sign,
+                hs03Sign,
                 appId,
                 appSecret,
                 sysCode,
@@ -71,24 +86,25 @@ public class Covid19Service implements ICovid19Service {
     }
 
     public Response importCYXXResult(CYXXRequestBody requestBody) {
-        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriCYXX),requestBody);
+        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriCYXX),appConfig.getHs01Sign(),requestBody);
     }
 
     public Response importJCJGQSResult(JCJGQSRequestBody requestBody) {
-        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriJCJGQ),requestBody);
+        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriJCJGQ),appConfig.getHs02Sign(),requestBody);
     }
 
     public Response importJCJGResult(JCJGRequestBody requestBody) {
-        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriJCJG),requestBody);
+        return createAndRequest(pathJoin(appConfig.getApiRoot(),uriJCJG),appConfig.getHs03Sign(),requestBody);
     }
 
     /**
      * 创建并完成请求
      * @param url
+     * @param sign
      * @param requestBody
      * @return
      */
-    private Response createAndRequest(String url,RequestBody requestBody){
+    private Response createAndRequest(String url,String sign,RequestBody requestBody){
         BusinessRequest request = new BusinessRequest<RequestBody>();
         request.setAppid(appConfig.getAppId());
         request.setAppSecret(appConfig.getAppSecret());
@@ -104,21 +120,24 @@ public class Covid19Service implements ICovid19Service {
 
 
         request.setData(requestBody);
-        return request(url,request);
+        return request(url,sign,request);
     }
 
     /**
      * 执行请求
      * @param url
+     * @param sign
      * @param request
      * @return
      */
-    private Response request(String url,BusinessRequest request){
+    private Response request(String url,String sign,BusinessRequest request){
         Response r = null;
         try {
             String jsonStr = mapper.writeValueAsString(request);
             try(CloseableHttpClient client = HttpClients.createDefault()){
                 HttpPost post = new HttpPost(url);
+                post.addHeader("appCode",appConfig.getAppCode());
+                post.addHeader("sign",sign);
                 post.setEntity(new StringEntity(jsonStr,ContentType.APPLICATION_JSON));
                 try(CloseableHttpResponse response = client.execute(post)){
                     String respJson = EntityUtils.toString(response.getEntity(), Consts.UTF_8.name());
@@ -170,7 +189,7 @@ public class Covid19Service implements ICovid19Service {
         info.setPtLoginName(appConfig.getLoginName());
         info.setPtPwd(appConfig.getLoginPwd());
 
-        String data = sm4.encryptHex(mapper.writeValueAsString(info));
+        String data = sm4.encryptBase64(mapper.writeValueAsString(info));
 
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setData(data);
@@ -178,12 +197,14 @@ public class Covid19Service implements ICovid19Service {
 
         try(CloseableHttpClient client = HttpClients.createDefault();){
             HttpPost post = new HttpPost(pathJoin(appConfig.getApiRoot(),uriLogin));
+            post.addHeader("appCode",appConfig.getAppCode());
+            post.addHeader("sign",appConfig.getLoginSign());
             post.setEntity(new StringEntity(mapper.writeValueAsString(loginRequest),
                     ContentType.APPLICATION_JSON));
 
             try(CloseableHttpResponse response = client.execute(post);){
+                String respJson = EntityUtils.toString(response.getEntity(), Consts.UTF_8.name());
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    String respJson = EntityUtils.toString(response.getEntity(), Consts.UTF_8.name());
                     LoginResponse respObj = mapper.readValue(respJson,LoginResponse.class);
                     if("10000".equals(respObj.getRespCode())){
                         String loingInfoStr = sm4.decryptStr(respObj.getRespData());
@@ -192,7 +213,7 @@ public class Covid19Service implements ICovid19Service {
                         throw new IOException("Get Token Failed With Code[" + respObj.getRespCode()+"] and descripted as " + respObj.getRespDesc());
                     }
                 }else{
-                    throw new IOException("Get Token Failed With Connection Error");
+                    throw new IOException("Get Token Failed:" + respJson);
                 }
             }
         }
