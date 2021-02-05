@@ -17,7 +17,7 @@ config.setLoginName("ECARD_zhangsan"); //平台登录账号
 config.setLoginPwd("123456"); //平台密码
 config.setKey("NG7P3TCTHINLHNUS"); //过密sm4加密，密钥由平台分配
 
-INucleicService service = new NucleicService(config);
+ICovid19Service service = new Covid19Service(config);
 
 CYXXRequestBody requestBody = new CYXXRequestBody();  //武汉核酸检测平台的接口中，请求中应该包含了很多固定值（重复使用的值），
                                                       // 建议使用时，使用工厂方法构造本对象以减少代码开发
