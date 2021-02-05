@@ -40,4 +40,4 @@ public ICovid19Service covid19Service(AppConfig config){
 ```
 
 ### 特殊说明
-默认token过期时间为半小时，可在AppConfig中通过tokenExist（单位毫秒）调整token的刷新周期
+默认token过期时间为500分钟，可在AppConfig中通过tokenExist（单位毫秒）调整token的刷新周期，核算平台系统为600小时，不要超过该值。
