@@ -45,8 +45,8 @@ public class CYXXRequestBody implements RequestBody{
     @JsonProperty("SGLYDW")
     private String SGLYDW;
 
-    @JsonProperty("SRRQ")
-    private String SRRQ;
+    @JsonProperty("SSRQ")
+    private String SSRQ;
 
     @JsonProperty("RYLX")
     private String RYLX;
@@ -210,12 +210,12 @@ public class CYXXRequestBody implements RequestBody{
         this.SGLYDW = SGLYDW;
     }
 
-    public String getSRRQ() {
-        return SRRQ;
+    public String getSSRQ() {
+        return SSRQ;
     }
 
-    public void setSRRQ(String SRRQ) {
-        this.SRRQ = SRRQ;
+    public void setSSRQ(String SSRQ) {
+        this.SSRQ = SSRQ;
     }
 
     public String getRYLX() {
