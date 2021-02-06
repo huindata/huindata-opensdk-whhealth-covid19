@@ -11,6 +11,8 @@ public class BusinessRequest<T extends RequestBody> {
 
     private String token;
 
+    private String key;
+
     private T data;
 
     public String getAppid() {
@@ -43,5 +45,13 @@ public class BusinessRequest<T extends RequestBody> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

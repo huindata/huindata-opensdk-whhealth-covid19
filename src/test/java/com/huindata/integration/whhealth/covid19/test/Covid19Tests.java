@@ -40,6 +40,7 @@ public class Covid19Tests {
         Response r = getCovid19Service().importCYXXResult(requestBody);
 
         assertEquals("unvalidFieldData",r.getErrorCode());
+        System.out.println(r.getMessage());
     }
 
     @Test
@@ -49,6 +50,7 @@ public class Covid19Tests {
         Response r = getCovid19Service().importJCJGQSResult(requestBody);
 
         assertEquals("unvalidFieldData",r.getErrorCode());
+        System.out.println(r.getMessage());
     }
 
     @Test
@@ -58,5 +60,6 @@ public class Covid19Tests {
         Response r = getCovid19Service().importJCJGResult(requestBody);
 
         assertEquals("unvalidFieldData",r.getErrorCode());
+        System.out.println(r.getMessage());
     }
 }

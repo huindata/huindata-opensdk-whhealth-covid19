@@ -108,6 +108,7 @@ public class Covid19Service implements ICovid19Service {
         BusinessRequest request = new BusinessRequest<RequestBody>();
         request.setAppid(appConfig.getAppId());
         request.setAppSecret(appConfig.getAppSecret());
+        request.setKey(appConfig.getKey());
         try {
             request.setToken(getToken().getToken());
         } catch (Exception e) {
